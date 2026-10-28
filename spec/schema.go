@@ -279,6 +279,8 @@ func applyFieldTags(schema *Schema, tag string) {
 				// Handled by the caller, which owns the required list.
 			case "deprecated":
 				schema.Description = strings.TrimSpace(schema.Description + " (deprecated)")
+			case "uniqueItems":
+				schema.UniqueItems = true
 			}
 			continue
 		}

@@ -120,6 +120,57 @@ func TestAssetsPathOfCustomUI(t *testing.T) {
 	}
 }
 
+func TestNativeUIFallsBackToTheDefaultAssetPath(t *testing.T) {
+	ui := NativeUI()
+
+	// Without an explicit path the interface uses a relative one.
+	native, ok := ui.(*nativeUI)
+	if !ok {
+		t.Fatalf("NativeUI = %T, want the native interface", ui)
+	}
+	if got := native.AssetsPath(UIContext{}); got != "_assets" {
+		t.Errorf("AssetsPath = %q, want _assets", got)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/docs/", nil)
+	rec := httptest.NewRecorder()
+	ui.Serve(rec, req, UIContext{
+		Title:   "Test API",
+		SpecURL: "http://localhost:8080/docs/openapi.json",
+	})
+
+	if !strings.Contains(rec.Body.String(), "_assets/app.css") {
+		t.Error("the page does not reference the default asset path")
+	}
+}
+func TestNativeAssetsHandlerServesTheIndex(t *testing.T) {
+	handler := NativeAssetsHandler("/docs/_assets")
+
+	req := httptest.NewRequest(http.MethodGet, "/docs/_assets/index.html", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), "<html") {
+		t.Error("the body is not an HTML page")
+	}
+}
+
+func TestNativeAssetsHandlerWithoutPrefix(t *testing.T) {
+	// An empty prefix serves the files from the root.
+	handler := NativeAssetsHandler("")
+
+	req := httptest.NewRequest(http.MethodGet, "/app.css", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want 200", rec.Code)
+	}
+}
+
 func TestMountPrefix(t *testing.T) {
 	reg := newTestRegistry()
 	h := New(reg, Options{DocsPath: "/docs"})

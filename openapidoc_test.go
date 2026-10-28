@@ -323,6 +323,40 @@ func TestHandlerConvenienceFunction(t *testing.T) {
 	}
 }
 
+func TestMethodHelpers(t *testing.T) {
+	cases := []struct {
+		op     *openapidoc.Operation
+		method string
+	}{
+		{openapidoc.Get("/x"), "GET"},
+		{openapidoc.Post("/x"), "POST"},
+		{openapidoc.Put("/x"), "PUT"},
+		{openapidoc.Patch("/x"), "PATCH"},
+		{openapidoc.Delete("/x"), "DELETE"},
+		{openapidoc.Path("options", "/x"), "OPTIONS"},
+	}
+	for _, c := range cases {
+		if c.op.Method != c.method {
+			t.Errorf("method = %q, want %q", c.op.Method, c.method)
+		}
+	}
+}
+
+func TestNewRegistry(t *testing.T) {
+	reg := openapidoc.New("Test API", "1.0.0")
+	doc := reg.Document()
+
+	if doc.Info.Title != "Test API" {
+		t.Errorf("title = %q, want Test API", doc.Info.Title)
+	}
+	if doc.Info.Version != "1.0.0" {
+		t.Errorf("version = %q, want 1.0.0", doc.Info.Version)
+	}
+	if doc.OpenAPI != "3.1.0" {
+		t.Errorf("openapi = %q, want 3.1.0", doc.OpenAPI)
+	}
+}
+
 // contains reports whether the slice holds the value.
 func contains(list []string, value string) bool {
 	for _, v := range list {

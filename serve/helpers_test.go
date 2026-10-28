@@ -1,8 +1,13 @@
 package serve
 
 import (
+	"crypto/tls"
+
 	"github.com/nookery/openapidoc/api"
 )
+
+// tlsState marks a request as secure in the tests.
+var tlsState = tls.ConnectionState{}
 
 // newTestRegistry builds a small registry for the tests.
 func newTestRegistry() *api.Registry {
