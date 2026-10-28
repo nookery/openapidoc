@@ -169,13 +169,18 @@ r.GET(handler.SpecPath(), gin.WrapH(handler.SpecHandler()))
 
 ## Choosing a UI
 
-The default UI is [Scalar](https://scalar.com), which renders an interactive
-reference with a built in API client.
+The default UI is bundled with the package. It is written in plain HTML,
+CSS and JavaScript with no framework and no external dependency, and is
+embedded in the binary, so the documentation works offline.
 
 ```go
 handler := openapidoc.NewHandler(docs)
-handler.WithUI(serve.RedocUI())
 ```
+
+It provides a three column layout: grouped navigation with search on the
+left, the operation detail in the middle, and code samples on the right. The
+detail view lets you fill in parameters, inspect the schema tree and send a
+real request.
 
 A custom interface is a single method:
 
@@ -184,6 +189,15 @@ type UI interface {
 	Serve(w http.ResponseWriter, r *http.Request, ctx serve.UIContext)
 }
 ```
+
+The package also ships interfaces backed by third party renderers:
+
+```go
+handler.WithUI(serve.ScalarUI())
+handler.WithUI(serve.RedocUI())
+```
+
+Those load their assets from a CDN, so they need network access.
 
 ## Status
 

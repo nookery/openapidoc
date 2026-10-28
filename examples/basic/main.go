@@ -93,6 +93,9 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle(handler.DocsPath()+"/", handler.DocsHandler())
 	mux.Handle(handler.SpecPath(), handler.SpecHandler())
+	if assets := handler.AssetsHandler(); assets != nil {
+		mux.Handle(handler.AssetsPath()+"/", assets)
+	}
 
 	// A real endpoint, so that the try it panel has something to call.
 	mux.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {

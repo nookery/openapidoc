@@ -62,15 +62,19 @@ func NewHandler(registry *Registry, opts ...serve.Options) *serve.Handler {
 }
 
 // Handler returns an http.Handler that serves the documentation UI at
-// docsPath and the OpenAPI document at docsPath + "/openapi.json".
+// docsPath, the OpenAPI document at docsPath + "/openapi.json" and the
+// static files of the bundled interface.
 //
 // It is a convenience wrapper around NewHandler for services that do not
 // need to customise the options.
 func Handler(registry *Registry, docsPath string) http.Handler {
-	h := serve.New(registry, serve.Options{DocsPath: docsPath})
+	h := NewHandler(registry, serve.Options{DocsPath: docsPath})
 	mux := http.NewServeMux()
 	mux.Handle(h.DocsPath()+"/", h.DocsHandler())
 	mux.Handle(h.SpecPath(), h.SpecHandler())
+	if assets := h.AssetsHandler(); assets != nil {
+		mux.Handle(h.AssetsPath()+"/", assets)
+	}
 	return mux
 }
 

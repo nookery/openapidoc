@@ -158,12 +158,13 @@ r.GET(handler.SpecPath(), gin.WrapH(handler.SpecHandler()))
 
 ## 选择 UI
 
-默认使用 [Scalar](https://scalar.com)，它渲染出带内置 API 客户端的交互式文档。
+默认 UI 随包一起分发。它用纯原生 HTML、CSS 和 JavaScript 编写，不依赖任何框架和外部资源，并通过 go:embed 内嵌进二进制，因此离线也能正常打开。
 
 ```go
 handler := openapidoc.NewHandler(docs)
-handler.WithUI(serve.RedocUI())
 ```
+
+界面为三栏布局：左侧是带搜索的分组导航，中间是接口详情，右侧是代码示例。详情区支持填写参数、查看 Schema 树，并可对真实接口发起请求。
 
 自定义 UI 只需实现一个方法：
 
@@ -172,6 +173,15 @@ type UI interface {
 	Serve(w http.ResponseWriter, r *http.Request, ctx serve.UIContext)
 }
 ```
+
+包内也提供了基于第三方渲染器的实现：
+
+```go
+handler.WithUI(serve.ScalarUI())
+handler.WithUI(serve.RedocUI())
+```
+
+它们从 CDN 加载资源，需要网络访问。
 
 ## 状态
 

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API Documentation</title>
+<link rel="stylesheet" href="{{.AssetsPath}}/app.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <header class="header">
+    <button class="icon-btn menu-btn" id="menu-toggle" type="button" aria-label="切换导航">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="header-brand">
+      <h1 class="header-title" id="doc-title">API</h1>
+      <span class="header-version" id="doc-version"></span>
+    </div>
+
+    <span class="header-desc" id="doc-desc"></span>
+
+    <div class="header-actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="切换主题" title="切换亮色/暗色主题">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <div class="sidebar-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="search" id="search" placeholder="搜索接口…  ( / )" aria-label="搜索接口" autocomplete="off" spellcheck="false">
+    </div>
+    <nav class="sidebar-nav" id="nav" aria-label="接口列表"></nav>
+  </aside>
+
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <main class="main" id="main">
+    <div class="main-inner" id="main-inner"></div>
+  </main>
+
+  <aside class="code-panel">
+    <div class="code-tabs" id="code-tabs"></div>
+    <pre class="code-body" id="code-body"></pre>
+  </aside>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+window.__OPENAPIDOC__ = {
+  specUrl: {{.SpecURL}},
+  title: "{{.Title}}"
+};
+</script>
+<script src="{{.AssetsPath}}/openapi.js"></script>
+<script src="{{.AssetsPath}}/codegen.js"></script>
+<script src="{{.AssetsPath}}/app.js"></script>
+</body>
+</html>

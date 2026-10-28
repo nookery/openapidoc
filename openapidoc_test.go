@@ -270,6 +270,59 @@ func TestHandlerPaths(t *testing.T) {
 	}
 }
 
+func TestHandlerServesAssets(t *testing.T) {
+	reg := newRegistry()
+	h := openapidoc.NewHandler(reg)
+
+	if h.AssetsPath() != "/docs/_assets" {
+		t.Errorf("AssetsPath = %q, want /docs/_assets", h.AssetsPath())
+	}
+
+	assets := h.AssetsHandler()
+	if assets == nil {
+		t.Fatal("AssetsHandler is nil")
+	}
+
+	for _, name := range []string{"app.css", "app.js", "openapi.js", "codegen.js"} {
+		req := httptest.NewRequest(http.MethodGet, "/docs/_assets/"+name, nil)
+		rec := httptest.NewRecorder()
+		assets.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Errorf("%s: status = %d, want 200", name, rec.Code)
+		}
+	}
+}
+
+func TestHandlerConvenienceFunction(t *testing.T) {
+	reg := newRegistry()
+	handler := openapidoc.Handler(reg, "/docs")
+
+	// The documentation page renders.
+	req := httptest.NewRequest(http.MethodGet, "/docs/", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Errorf("docs: status = %d, want 200", rec.Code)
+	}
+
+	// The spec is served.
+	req = httptest.NewRequest(http.MethodGet, "/docs/openapi.json", nil)
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Errorf("spec: status = %d, want 200", rec.Code)
+	}
+
+	// The static files are served.
+	req = httptest.NewRequest(http.MethodGet, "/docs/_assets/app.css", nil)
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Errorf("assets: status = %d, want 200", rec.Code)
+	}
+}
+
 // contains reports whether the slice holds the value.
 func contains(list []string, value string) bool {
 	for _, v := range list {

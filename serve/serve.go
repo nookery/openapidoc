@@ -41,7 +41,7 @@ type Handler struct {
 
 // New creates a Handler for the given registry.
 //
-// The UI defaults to the bundled Scalar reference. Pass a different UI with
+// The UI defaults to the bundled interface. Pass a different UI with
 // WithUI to change the rendering.
 func New(registry *api.Registry, opts ...Options) *Handler {
 	h := &Handler{
@@ -76,6 +76,26 @@ func (h *Handler) DocsPath() string { return h.opts.DocsPath }
 // SpecPath returns the URL path serving the OpenAPI document.
 func (h *Handler) SpecPath() string { return h.opts.SpecPath }
 
+// AssetsPath returns the URL path serving the static files of the bundled
+// interface.
+//
+// It is empty when a custom UI is in use, because a custom interface is
+// responsible for its own assets.
+func (h *Handler) AssetsPath() string {
+	return assetsPathOf(h.ui, h.uiContext(nil))
+}
+
+// AssetsHandler serves the static files of the bundled interface.
+//
+// It returns nil when a custom UI is in use.
+func (h *Handler) AssetsHandler() http.Handler {
+	prefix := h.AssetsPath()
+	if prefix == "" {
+		return nil
+	}
+	return NativeAssetsHandler(prefix)
+}
+
 // SpecHandler serves the OpenAPI document as JSON.
 func (h *Handler) SpecHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -97,15 +117,47 @@ func (h *Handler) SpecHandler() http.Handler {
 // DocsHandler serves the documentation UI.
 func (h *Handler) DocsHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		title := h.opts.Title
-		if title == "" {
-			title = h.registry.Document().Info.Title
-		}
-		h.ui.Serve(w, r, UIContext{
-			Title:   title,
-			SpecURL: h.specURL(r),
-		})
+		h.ui.Serve(w, r, h.uiContext(r))
 	})
+}
+
+// uiContext builds the context handed to the UI.
+func (h *Handler) uiContext(r *http.Request) UIContext {
+	title := h.opts.Title
+	if title == "" {
+		title = h.registry.Document().Info.Title
+	}
+	return UIContext{
+		Title:      title,
+		SpecURL:    h.specURL(r),
+		AssetsPath: h.assetsPath(r),
+	}
+}
+
+// mountPrefix returns the path the documentation is mounted under, without
+// a trailing slash.
+//
+// It is empty when the documentation sits at the root of the server.
+func (h *Handler) mountPrefix(r *http.Request) string {
+	if r == nil {
+		return ""
+	}
+	path := strings.TrimSuffix(r.URL.Path, "/")
+	if path == h.opts.DocsPath {
+		return ""
+	}
+	if strings.HasSuffix(path, h.opts.DocsPath) {
+		return strings.TrimSuffix(path, h.opts.DocsPath)
+	}
+	return ""
+}
+
+// assetsPath computes the URL prefix of the static files.
+//
+// The prefix is root relative so that it stays valid behind a proxy and
+// needs no escaping in the rendered page.
+func (h *Handler) assetsPath(r *http.Request) string {
+	return h.mountPrefix(r) + h.opts.DocsPath + "/_assets"
 }
 
 // specURL computes the absolute URL of the spec endpoint as seen by the
@@ -122,10 +174,5 @@ func (h *Handler) specURL(r *http.Request) string {
 	if fwd := r.Header.Get("X-Forwarded-Proto"); fwd != "" {
 		scheme = strings.Split(fwd, ",")[0]
 	}
-
-	prefix := strings.TrimSuffix(r.URL.Path, h.opts.DocsPath)
-	if prefix == "" {
-		prefix = ""
-	}
-	return scheme + "://" + r.Host + prefix + h.opts.SpecPath
+	return scheme + "://" + r.Host + h.mountPrefix(r) + h.opts.SpecPath
 }
