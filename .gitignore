@@ -1,0 +1,15 @@
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+/bin/
+
+# Coverage
+coverage.out
+coverage.html
+
+# Editor
+.idea/
+.vscode/
+.DS_Store
