@@ -1,5 +1,7 @@
 # openapidoc
 
+English | [简体中文](README.zh-CN.md)
+
 Browser readable API documentation for Go services. Describe the API once,
 mount the handler, open the browser.
 
